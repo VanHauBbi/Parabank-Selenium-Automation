@@ -7,6 +7,7 @@ namespace SeleniumProject.Pages
     public class TransferFundsPage
     {
         private IWebDriver _driver;
+       // private By AmountError = By.Id("amount.errors");
 
         public TransferFundsPage(IWebDriver driver)
         {
@@ -95,6 +96,42 @@ namespace SeleniumProject.Pages
             });
 
             return _driver.FindElement(trueSuccessMessage).Text.Trim();
+        }
+
+        public string GetAmountErrorText()
+        {
+            WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
+
+            wait.Until(d =>
+            {
+                try
+                {
+                    var errorElements = d.FindElements(By.ClassName("error"));
+                    foreach (var element in errorElements)
+                    {
+                        if (element.Displayed && !string.IsNullOrWhiteSpace(element.Text))
+                        {
+                            return true; // Thoát vòng lặp chờ
+                        }
+                    }
+                    return false;
+                }
+                catch (StaleElementReferenceException)
+                {
+                    return false; // Bỏ qua nếu giao diện đang tải lại
+                }
+            });
+
+            var finalErrors = _driver.FindElements(By.ClassName("error"));
+            foreach (var err in finalErrors)
+            {
+                if (err.Displayed && !string.IsNullOrWhiteSpace(err.Text))
+                {
+                    return err.Text.Trim();
+                }
+            }
+
+            return string.Empty;
         }
     }
 }
