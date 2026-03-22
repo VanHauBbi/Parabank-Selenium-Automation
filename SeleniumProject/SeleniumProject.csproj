@@ -26,10 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="TestData\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="TestData\TestData.xlsx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
