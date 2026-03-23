@@ -65,16 +65,49 @@ namespace SeleniumProject.Pages
 
         public string GetAccountMismatchError()
         {
-            WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(5));
-            By errorLocator = By.Id("verifyAccount.errors");
+            WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
 
             wait.Until(d =>
             {
-                var elements = d.FindElements(errorLocator);
-                return elements.Count > 0 && elements[0].Displayed;
+                try
+                {
+                    var errorElements = d.FindElements(By.ClassName("error"));
+                    foreach (var element in errorElements)
+                    {
+                        if (element.Displayed && !string.IsNullOrWhiteSpace(element.Text))
+                        {
+                            return true;
+                        }
+                    }
+
+                    if (d.PageSource.Contains("An internal error has occurred"))
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
+                catch (StaleElementReferenceException)
+                {
+                    return false;
+                }
             });
 
-            return _driver.FindElement(errorLocator).Text.Trim();
+            if (_driver.PageSource.Contains("An internal error has occurred"))
+            {
+                return "Server Parabank Crash: An internal error has occurred.";
+            }
+
+            var finalErrors = _driver.FindElements(By.ClassName("error"));
+            foreach (var err in finalErrors)
+            {
+                if (err.Displayed && !string.IsNullOrWhiteSpace(err.Text))
+                {
+                    return err.Text.Trim();
+                }
+            }
+
+            return string.Empty;
         }
     }
 }

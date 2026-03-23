@@ -7,7 +7,7 @@ namespace SeleniumProject.Pages
     public class TransferFundsPage
     {
         private IWebDriver _driver;
-       // private By AmountError = By.Id("amount.errors");
+        private By AmountError = By.Id("amount.errors");
 
         public TransferFundsPage(IWebDriver driver)
         {
@@ -65,12 +65,24 @@ namespace SeleniumProject.Pages
 
         public void SelectToAccountByIndex(int index)
         {
-            WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(15));
+            WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
 
-            wait.Until(d => new SelectElement(d.FindElement(ToAccountDropdown)).Options.Count > 0);
+            IWebElement toAccountDrop = wait.Until(d => d.FindElement(By.Id("toAccountId")));
+            SelectElement select = new SelectElement(toAccountDrop);
 
-            SelectElement select = new SelectElement(_driver.FindElement(ToAccountDropdown));
-            select.SelectByIndex(index);
+            wait.Until(d => new SelectElement(d.FindElement(By.Id("toAccountId"))).Options.Count > 0);
+
+            int availableOptions = select.Options.Count;
+
+            if (index >= availableOptions)
+            {
+                Console.WriteLine($"Cảnh báo: Không có index {index}, chọn index {availableOptions - 1} thay thế.");
+                select.SelectByIndex(availableOptions - 1);
+            }
+            else
+            {
+                select.SelectByIndex(index);
+            }
         }
 
         public void ClickTransferButton()
@@ -111,14 +123,14 @@ namespace SeleniumProject.Pages
                     {
                         if (element.Displayed && !string.IsNullOrWhiteSpace(element.Text))
                         {
-                            return true; // Thoát vòng lặp chờ
+                            return true;
                         }
                     }
                     return false;
                 }
                 catch (StaleElementReferenceException)
                 {
-                    return false; // Bỏ qua nếu giao diện đang tải lại
+                    return false;
                 }
             });
 

@@ -62,16 +62,13 @@ namespace SeleniumProject.Tests
             {
                 _transferPage.GoToTransferPage();
 
-                // Cố tình để trống
                 _transferPage.EnterAmount("");
                 _transferPage.SelectFromAccountByIndex(0);
                 _transferPage.SelectToAccountByIndex(1);
                 _transferPage.ClickTransferButton();
 
-                // Cào dòng chữ đỏ ("The amount cannot be empty.")
                 string actualError = _transferPage.GetAmountErrorText();
 
-                // Kiểm chứng: Chuỗi lỗi phải được lấy ra thành công
                 Assert.That(actualError, Is.Not.Empty, "Hệ thống không hiển thị báo lỗi khi để trống Amount.");
 
                 ExcelHelper.WriteResult(3, 14, "PASS", 13, actualError);
@@ -104,12 +101,17 @@ namespace SeleniumProject.Tests
                     isBlocked = true;
                 }
 
+                ExcelHelper.TakeScreenshot(_driverFactory.Driver, "TC_TRA_04_SameAccount");
+
                 Assert.IsTrue(isBlocked, "Lỗi: Hệ thống cho phép chuyển tiền cùng một tài khoản.");
-                ExcelHelper.WriteResult(12, 14, "PASS", 13, "Chặn thành công giao dịch trùng tài khoản"); // Ghi vào dòng 12
+
+                ExcelHelper.WriteResult(12, 14, "Passed", 13, "Chặn thành công giao dịch trùng tài khoản");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                ExcelHelper.WriteResult(12, 14, "FAIL", 13, "Lỗi logic xử lý tài khoản trùng");
+                ExcelHelper.TakeScreenshot(_driverFactory.Driver, "TC_TRA_04_SameAccount_FAIL");
+
+                ExcelHelper.WriteResult(12, 14, "Failed", 13, $"Lỗi logic xử lý tài khoản trùng: {ex.Message}");
                 throw;
             }
         }
@@ -120,19 +122,23 @@ namespace SeleniumProject.Tests
             try
             {
                 _transferPage.GoToTransferPage();
+
                 _transferPage.EnterAmount("999999");
                 _transferPage.SelectFromAccountByIndex(0);
-                _transferPage.SelectToAccountByIndex(1);
+
+                _transferPage.SelectToAccountByIndex(0);
+
                 _transferPage.ClickTransferButton();
 
                 string actualMessage = _transferPage.GetResultMessage();
-                Assert.That(actualMessage, Is.EqualTo("Transfer Complete!"));
 
-                ExcelHelper.WriteResult(13, 14, "PASS", 13, actualMessage); // Ghi vào dòng 13
+                Assert.That(actualMessage, Is.EqualTo("Transfer Complete!"), "Parabank không cho phép ghi nợ (Overdraft) như thiết kế.");
+
+                ExcelHelper.WriteResult(14, 14, "PASS", 13, "Giao dịch thành công, tài khoản bị ghi nợ.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                ExcelHelper.WriteResult(13, 14, "FAIL", 13, "Giao dịch Overdraft thất bại");
+                ExcelHelper.WriteResult(14, 14, "FAIL", 13, ex.Message);
                 throw;
             }
         }

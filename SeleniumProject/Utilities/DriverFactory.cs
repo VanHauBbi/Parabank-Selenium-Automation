@@ -18,7 +18,17 @@ namespace SeleniumProject.Utilities
             options.AddArgument("--start-maximized");
             options.AddArgument("--disable-notifications");
 
-            Driver = new ChromeDriver(options);
+            options.AddArgument("--log-level=3");
+            options.AddArgument("--silent");
+            options.AddArgument("--disable-logging");
+
+            ChromeDriverService service = ChromeDriverService.CreateDefaultService();
+
+            service.HideCommandPromptWindow = true;
+
+            service.SuppressInitialDiagnosticInformation = true;
+
+            Driver = new ChromeDriver(service, options);
 
             Driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
         }
