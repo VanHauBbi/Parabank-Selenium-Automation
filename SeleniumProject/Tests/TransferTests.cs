@@ -119,26 +119,39 @@ namespace SeleniumProject.Tests
         [Test]
         public void TC_TRA_05_Overdraft()
         {
+            string testCaseId = "TC_TRA_05";
+            int excelRow = 14;
+
             try
             {
                 _transferPage.GoToTransferPage();
+                System.Threading.Thread.Sleep(2000);
 
                 _transferPage.EnterAmount("999999");
                 _transferPage.SelectFromAccountByIndex(0);
 
-                _transferPage.SelectToAccountByIndex(0);
+                _transferPage.SelectToAccountByIndex(1);
 
                 _transferPage.ClickTransferButton();
 
                 string actualMessage = _transferPage.GetResultMessage();
 
-                Assert.That(actualMessage, Is.EqualTo("Transfer Complete!"), "Parabank không cho phép ghi nợ (Overdraft) như thiết kế.");
+                Assert.That(actualMessage, Is.Not.EqualTo("Transfer Complete!"),
+                    "LỖI NGHIỆP VỤ (BUG): Hệ thống đã cho phép chuyển tiền vượt quá số dư thực tế (Overdraft).");
 
-                ExcelHelper.WriteResult(14, 14, "PASS", 13, "Giao dịch thành công, tài khoản bị ghi nợ.");
+                ExcelHelper.TakeScreenshot(_driverFactory.Driver, testCaseId);
+                ExcelHelper.WriteResult(excelRow, 14, "PASS", 13, "Hệ thống đã chặn thành công giao dịch vượt hạn mức.");
+            }
+            catch (AssertionException ex)
+            {
+                ExcelHelper.TakeScreenshot(_driverFactory.Driver, $"{testCaseId}_BUG_Overdraft");
+                ExcelHelper.WriteResult(excelRow, 14, "FAIL", 13, ex.Message);
+                throw;
             }
             catch (Exception ex)
             {
-                ExcelHelper.WriteResult(14, 14, "FAIL", 13, ex.Message);
+                ExcelHelper.TakeScreenshot(_driverFactory.Driver, $"{testCaseId}_FAIL");
+                ExcelHelper.WriteResult(excelRow, 14, "FAIL", 13, $"Lỗi kỹ thuật: {ex.Message}");
                 throw;
             }
         }
